@@ -1,19 +1,17 @@
 from setuptools import setup, find_packages
 
-
-
 setup(
     name='taskhub',
-    version="0.1",
+    version="0.5.2",
     packages=find_packages(),
     include_package_data=True,
     entry_points={
     },
     install_requires=[
-        "retry", 
+        "retry",
         "loger",
     ],
-    url='',
+    url='https://github.com/iridesc/taskhub',
     license='GNU General Public License v3.0',
     author='Irid Zhang',
     author_email='irid.zzy@gmail.com',

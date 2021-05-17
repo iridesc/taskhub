@@ -1,5 +1,6 @@
-from connector import connect
-from hub import Task
+from taskhub.connector import connect
+from taskhub.hub import Task
+
 hub = connect("127.0.0.1", 2334, "1231")
 node_id = 1
 
