@@ -155,9 +155,12 @@ class TaskHub():
                     # 加锁
                     self.get_lock()
                     # 输出状态
-                    status_str = "tasks: "
+                    status_count = dict()
                     for key, task in self.tasks.items():
-                        status_str += "{}：{}\t".format(key, task.status)
+                        status_count[task.status] = status_count[task.status] + 1 if status_count.get(task.status) else 1 
+                    status_str = ""
+                    for statu,amount in status_count.items():
+                        status_str += "{}:{}  ".format(statu,amount)
                     makelog(status_str)
 
                     # 检查需要同步的数据

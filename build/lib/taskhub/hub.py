@@ -1,13 +1,14 @@
 import random
 import time
 import json
-import requests 
+import requests
 import traceback
 from multiprocessing.managers import BaseManager
 
 
 from retry import retry
 from loger import makelog
+
 
 class HubManager(BaseManager):
     pass
@@ -21,7 +22,7 @@ class Task():
     start_time = 0
     nodeId = 0
 
-    def __init__(self,key:str,priority:int,data:dict):
+    def __init__(self, key: str, priority: int, data: dict):
         """[初始化Task]
 
         Args:
@@ -38,6 +39,7 @@ class Task():
             self.data = data
         else:
             raise TaskInitError()
+
     def get_dict(self):
         return {
             "key": self.key,
@@ -47,8 +49,9 @@ class Task():
             "start_time": self.start_time,
             "nodeId": 0
         }
-    def __str__(self): 
-        return json.dumps(self.get_dict())
+
+    def __str__(self):
+        return json.dumps(self.get_dict(), ensure_ascii=False)
 
 
 class TaskHub():
@@ -59,10 +62,10 @@ class TaskHub():
     timeout = 600
     check_gap = 20
 
-    def __init__(self,sync):
+    def __init__(self, sync):
         self.sync = sync
-    
-    def add(self,task:Task):
+
+    def add(self, task: Task):
         """[summary]
 
         Args:
@@ -74,14 +77,14 @@ class TaskHub():
         Returns:
             [bool]: [成功返回True]
         """
-        
+
         # 加锁
         self.get_lock()
         # 检查是否存在
-        if not self.tasks.get( task.key):
+        if not self.tasks.get(task.key):
             # 不存在则添加
-            self.tasks[task.key] =task
-            makelog("task added!",4)
+            self.tasks[task.key] = task
+            makelog("task added!", 4)
             # 释放锁并返回
             self.release_lock()
             return True
@@ -90,22 +93,22 @@ class TaskHub():
             self.release_lock()
             raise TaskAlreadyExist()
 
-    def get(self,nodeId:int):
+    def get(self, nodeId: int):
         # 加锁
         self.get_lock()
         # 根据优先级排序 然后便利
-        for key, task in sorted(self.tasks.items(),key=lambda item:item[1].priority):
+        for key, task in sorted(self.tasks.items(), key=lambda item: item[1].priority):
             # 获取第一个是wait的 设置数据并返回
             if task.status == "wait":
                 task.node_id = nodeId
                 task.status = "running"
                 self.release_lock()
-                return  task
+                return task
         else:
             # 全部遍历后均没有wait则释放锁返回None
             self.release_lock()
-    
-    def upload(self,task:Task):
+
+    def upload(self, task: Task):
         """[worker 向taskhub 上载数据，标志着该任务的完成]
 
         Args:
@@ -140,26 +143,29 @@ class TaskHub():
                 self.release_lock()
                 raise TaskNotRunning()
         else:
-                self.release_lock()
-                raise TaskNotExist()
+            self.release_lock()
+            raise TaskNotExist()
 
     def serve(self):
         t = 0
         while True:
             if time.time() - t > self.check_gap:
-               
+
                 try:
                     # 加锁
                     self.get_lock()
                     # 输出状态
-                    status_str = "tasks: "
+                    status_count = dict()
                     for key, task in self.tasks.items():
-                        status_str += "{}：{}\t".format(key, task.status)
+                        status_count[task.status] = status_count[task.status] + 1 if status_count.get(task.status) else 1 
+                    status_str = ""
+                    for statu,amount in status_count.items():
+                        status_str += "{}:{}  ".format(statu,amount)
                     makelog(status_str)
 
                     # 检查需要同步的数据
-                    for_del_key=[]
-                    for key,task in self.tasks.items():
+                    for_del_key = []
+                    for key, task in self.tasks.items():
                         if task.status == "done":
                             # 将数据同步到后端
                             if self.sync(task):
@@ -168,17 +174,16 @@ class TaskHub():
                     for key in for_del_key:
                         del self.tasks[key]
 
-
                 except:
-                    makelog("未知异常：{}".format(traceback.format_exc()),1)
+                    makelog("未知异常：{}".format(traceback.format_exc()), 1)
 
                 finally:
                     # 释放锁
-                    self.release_lock() 
-                    
+                    self.release_lock()
+
                 t = time.time()
                 time.sleep(1)
- 
+
     def get_lock(self):
         # makelog("getting lock ....")
         while self.lock:
@@ -187,7 +192,7 @@ class TaskHub():
         # makelog("lock got!")
 
     def release_lock(self):
-        self.lock=False
+        self.lock = False
         # makelog("lock released!")
 
 
@@ -212,7 +217,7 @@ class TaskInitError(Exception):
 
 
 class TaskNotRunning(Exception):
-    def __str__(self,task):
+    def __str__(self, task):
         return "task should be running but it in {} now".format(task.status)
 
 
@@ -223,4 +228,4 @@ class NodeIdTypeError(Exception):
 
 class NodeIdNotMatch(Exception):
     def __str__(self, task_nodeId, nodeId):
-        return "nodeId doesn`t match! task nodeid = {} your node id = {}".format(task_nodeId,nodeId)
+        return "nodeId doesn`t match! task nodeid = {} your node id = {}".format(task_nodeId, nodeId)

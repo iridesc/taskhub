@@ -7,12 +7,12 @@ import traceback
 
 
 def sync(task):
-    GRAB_KEY = "VooSb3VNims3IjaNxBERGvtdRpgecL2C"
-    back_end_url = "http://127.0.0.1/api/grab/web/data/"
+
+    back_end_url = "http://127.0.0.1/api/"
     @retry(tries=5, delay=1, backoff=1)
     def req(task):
         print(task)
-        r = requests.post(back_end_url, json=task.get_dict(), headers={"GRAB-KEY":GRAB_KEY})
+        r = requests.post(back_end_url, json=task.get_dict())
         r.raise_for_status
         return r.json()
 
