@@ -16,13 +16,14 @@ class HubManager(BaseManager):
 
 class Task():
     key = ""
+    task_type = ""
     priority = 1
     data = dict()
     status = "wait"
     start_time = 0
     nodeId = 0
 
-    def __init__(self, key: str, priority: int, data: dict):
+    def __init__(self, key: str, priority: int, data: dict, task_type:str = ""):
         """[初始化Task]
 
         Args:
@@ -33,7 +34,8 @@ class Task():
         Raises:
             TaskInitError: [初始化错误，检查数据格式与范围]
         """
-        if isinstance(key, str) and isinstance(priority, int) and isinstance(data, dict) and 0 < priority < 1000000:
+        if isinstance(key, str) and isinstance(priority, int) and isinstance(data, dict)\
+             and isinstance(task_type,str) and 0 < priority < 1000000:
             self.key = key
             self.priority = priority if priority < 1000000 else 1000000
             self.data = data
@@ -47,7 +49,8 @@ class Task():
             "status": self.status,
             "data": self.data,
             "start_time": self.start_time,
-            "nodeId": 0
+            "nodeId": 0,
+            "task_type": self.task_type
         }
 
     def __str__(self):
@@ -93,13 +96,13 @@ class TaskHub():
             self.release_lock()
             raise TaskAlreadyExist()
 
-    def get(self, nodeId: int):
+    def get(self, nodeId: int, filter_list : list = []):
         # 加锁
         self.get_lock()
         # 根据优先级排序 然后便利
         for key, task in sorted(self.tasks.items(), key=lambda item: item[1].priority):
             # 获取第一个是wait的 设置数据并返回
-            if task.status == "wait":
+            if task.status == "wait" and task.task_type not in filter_list:
                 task.node_id = nodeId
                 task.status = "running"
                 self.release_lock()

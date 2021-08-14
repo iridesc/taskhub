@@ -5,16 +5,15 @@ from multiprocessing import Process
 import time
 
 
-def start_hub_serve(port, passwd, sync):
+def start_hub_serve(ip, port, passwd, sync):
     hub = TaskHub(sync)
     HubManager.register('get_hub', callable=lambda: hub)
-    hubmanager = HubManager(address=("0.0.0.0", port),
-                            authkey=passwd.encode("utf-8"))
+    hubmanager = HubManager(address=(ip, port), authkey=passwd.encode("utf-8"))
     serve = hubmanager.get_server()
     serve.serve_forever()
 
 
-def serve(port: int, passwd: str, sync):
+def serve(ip: str, port: int, passwd: str, sync):
     """[启动taskhub服务]
 
     Args:
@@ -24,8 +23,9 @@ def serve(port: int, passwd: str, sync):
         该函数负责处理这些完成状态的数据，并返回一个bool值，
         以表示处理成功与否，若成功taskhub将移除改该Task]
     """
-    p = Process(target=start_hub_serve, args=(port, passwd, sync,))
+
+    p = Process(target=start_hub_serve, args=(ip, port, passwd, sync,))
     p.start()
     time.sleep(3)
-    hub = connect("0.0.0.0", port, passwd)
+    hub = connect(ip, port, passwd)
     hub.serve()

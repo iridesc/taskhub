@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='taskhub',
-    version="0.5.4",
+    version="0.6.2",
     packages=find_packages(),
     include_package_data=True,
     entry_points={
