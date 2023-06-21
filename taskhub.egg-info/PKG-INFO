@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: taskhub
-Version: 0.6.1
+Version: 0.7.2
 Summary: 一个任务分发与结果收集中间件
 Home-page: https://github.com/iridesc/taskhub
 Author: Irid Zhang

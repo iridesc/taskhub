@@ -2,6 +2,7 @@ setup.py
 taskhub/__init__.py
 taskhub/connector.py
 taskhub/hub.py
+taskhub/log.py
 taskhub/server.py
 taskhub.egg-info/PKG-INFO
 taskhub.egg-info/SOURCES.txt
